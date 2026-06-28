@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "publicskintotems",
+  "version": "1.0.1",
+  "name": "PublicSkinTotems",
+  "description": "Renders claimed Totems of Undying as 3D figures wearing the owner's skin. Pick up a plain totem and it locks to your skin automatically; totems claimed by other players keep their skin, so everyone can see whose totem is whose.",
+  "authors": [
+    "Endyboii"
+  ],
+  "contact": {},
+  "license": "Apache-2.0",
+  "icon": "assets/publicskintotems/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "github.com.Endyboii.publicskintotems.client.PublicskintotemsDataGenerator"
+    ],
+    "client": [
+      "github.com.Endyboii.publicskintotems.client.PublicskintotemsClient"
+    ],
+    "main": [
+      "github.com.Endyboii.publicskintotems.Publicskintotems"
+    ]
+  },
+  "mixins": [
+    "publicskintotems.mixins.json",
+    {
+      "config": "publicskintotems.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
