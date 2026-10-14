@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "publicskintotems",
-  "version": "1.0.1",
+  "version": "${version}",
   "name": "PublicSkinTotems",
   "description": "Renders claimed Totems of Undying as 3D figures wearing the owner's skin. Pick up a plain totem and it locks to your skin automatically; totems claimed by other players keep their skin, so everyone can see whose totem is whose.",
   "authors": [

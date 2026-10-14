@@ -3,6 +3,12 @@ plugins {
     id 'maven-publish'
 }
 
+// Select the Minecraft version with -PmcVersion=<ver>; defaults to the value in gradle.properties.
+def mcVersion = findProperty('mcVersion') ?: project.minecraft_version
+def versionProps = new Properties()
+file("versions/${mcVersion}.properties").with { if (it.exists()) it.withInputStream { versionProps.load(it) } }
+versionProps.each { k, v -> project.ext.set(k, v) }
+
 version = project.mod_version
 group = project.maven_group
 

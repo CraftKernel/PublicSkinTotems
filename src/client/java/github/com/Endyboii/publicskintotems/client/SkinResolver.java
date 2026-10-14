@@ -36,13 +36,16 @@ public final class SkinResolver {
     public static Identifier getSkinTexture(UUID uuid, String name) {
         MinecraftClient mc = MinecraftClient.getInstance();
 
-        // 1. Online player -> read & cache the live skin.
+        // 1. Online player -> the tab-list is authoritative (picks up skin changes). Only write the
+        //    caches when the skin actually changed; this runs on every render of a claimed totem.
         if (mc.getNetworkHandler() != null) {
             PlayerListEntry entry = mc.getNetworkHandler().getPlayerListEntry(uuid);
             if (entry != null) {
-                SLIM.put(uuid, "slim".equals(entry.getModel()));
                 Identifier id = entry.getSkinTexture();
-                SKINS.put(uuid, id);
+                if (!id.equals(SKINS.get(uuid))) {
+                    SKINS.put(uuid, id);
+                    SLIM.put(uuid, "slim".equals(entry.getModel()));
+                }
                 return id;
             }
         }
