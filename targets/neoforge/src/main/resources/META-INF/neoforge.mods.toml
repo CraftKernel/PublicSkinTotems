@@ -6,7 +6,7 @@ license="Apache-2.0"
 modId="publicskintotems"
 version="${version}"
 displayName="PublicSkinTotems"
-authors="Endyboii"
+authors="CraftKernel"
 logoFile="assets/publicskintotems/icon.png"
 description='''Renders claimed Totems of Undying as 3D figures wearing the owner's skin. Pick up a plain totem and it locks to your skin automatically; totems claimed by other players keep their skin, so everyone can see whose totem is whose.'''
 
