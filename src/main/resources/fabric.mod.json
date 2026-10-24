@@ -13,13 +13,13 @@
   "environment": "*",
   "entrypoints": {
     "fabric-datagen": [
-      "github.com.Endyboii.publicskintotems.client.PublicskintotemsDataGenerator"
+      "github.com.CraftKernel.publicskintotems.client.PublicskintotemsDataGenerator"
     ],
     "client": [
-      "github.com.Endyboii.publicskintotems.client.PublicskintotemsClient"
+      "github.com.CraftKernel.publicskintotems.client.PublicskintotemsClient"
     ],
     "main": [
-      "github.com.Endyboii.publicskintotems.Publicskintotems"
+      "github.com.CraftKernel.publicskintotems.Publicskintotems"
     ]
   },
   "mixins": [

@@ -1,0 +1,79 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
+}
+
+version = project.mod_version
+group = 'github.com.CraftKernel'
+base.archivesName = "publicskintotems-forge-mc${project.minecraft_version}"
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
+sourceSets.main.java {
+    srcDir "../common/modern/server/java"
+    exclude "**/mixin/AnvilMenuMixin.java"
+}
+
+minecraft {
+    mappings channel: 'official', version: project.minecraft_version
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'info'
+            args '--mixin.config=publicskintotems.mixins.json'
+            if (findProperty('quickWorld')) {
+                args '--quickPlaySingleplayer', findProperty('quickWorld')
+            }
+        }
+        client {}
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
+    compileOnly 'org.spongepowered:mixin:0.8.5'
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mc_range", project.mc_range
+    inputs.property "forge_major", project.forge_major
+    filesMatching("META-INF/mods.toml") {
+        expand "version": project.version, "mc_range": project.mc_range, "forge_major": project.forge_major
+    }
+}
+
+tasks.named('jar', Jar) {
+    from("LICENSE.txt")
+    manifest {
+        attributes['MixinConfigs'] = "publicskintotems.mixins.json"
+    }
+    finalizedBy 'reobfJar'
+}
+
+tasks.register('copyToLibs', Copy) {
+    dependsOn 'reobfJar'
+    from(tasks.named('jar'))
+    into rootProject.file('../../build/libs')
+}
+tasks.named('build') { finalizedBy 'copyToLibs' }
+
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) {
+            groupId = 'github.com.CraftKernel'
+            artifactId = base.archivesName.get()
+            artifact tasks.named('jar')
+        }
+    }
+}

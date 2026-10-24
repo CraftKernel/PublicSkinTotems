@@ -1,0 +1,76 @@
+plugins {
+    id 'maven-publish'
+    id 'net.fabricmc.fabric-loom-remap' version '1.18.3'
+}
+
+def mcVersion = findProperty('mcVersion') ?: project.minecraft_version
+def mcLabel = findProperty('mcLabel') ?: mcVersion
+def versionProps = new Properties()
+file("versions/${mcVersion}.properties").with { if (it.exists()) it.withInputStream { versionProps.load(it) } }
+versionProps.each { k, v -> project.ext.set(k, v) }
+
+version = project.mod_version
+base { archivesName = "publicskintotems-fabric-mc${mcLabel}" }
+
+def dataCompat = project.hasProperty('data') ? project.data : 'v1_21_9'
+sourceSets.main.java.srcDir "../common/fabric/java"
+sourceSets.main.java.srcDir "../common/modern/data/${dataCompat}/java"
+sourceSets.main.java.srcDir "../common/modern/server/java"
+if (!project.hasProperty('legacy_render')) {
+    sourceSets.main.java.srcDir "../common/modern/itemstate/java"
+}
+sourceSets.main.resources.srcDir "../common/modern/compat/${project.compat}/resources"
+sourceSets.main.java.srcDir "../common/modern/compat/${project.compat}/java"
+
+if (findProperty('quickWorld')) {
+    loom {
+        runs {
+            client {
+                programArgs '--quickPlaySingleplayer', findProperty('quickWorld')
+            }
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mc_range", project.mc_range
+    filteringCharset "UTF-8"
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version, "mc_range": project.mc_range, "loader_version": project.loader_version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = 21
+}
+
+java { withSourcesJar() }
+
+jar {
+    from("LICENSE.txt")
+}
+
+tasks.register('copyToLibs', Copy) {
+    from(tasks.named('remapJar'))
+    into rootProject.file('../../build/libs')
+}
+tasks.named('build') { finalizedBy 'copyToLibs' }
+
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) {
+            groupId = 'github.com.CraftKernel'
+            artifactId = base.archivesName.get()
+            from components.java
+        }
+    }
+}

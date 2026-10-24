@@ -1,0 +1,25 @@
+modLoader="javafml"
+loaderVersion="[${forge_major},)"
+license="Apache-2.0"
+
+[[mods]]
+modId="publicskintotems"
+version="${version}"
+displayName="PublicSkinTotems"
+authors="Endyboii"
+logoFile="assets/publicskintotems/icon.png"
+description='''Renders claimed Totems of Undying as 3D figures wearing the owner's skin. Pick up a plain totem and it locks to your skin automatically; totems claimed by other players keep their skin, so everyone can see whose totem is whose.'''
+
+[[dependencies.publicskintotems]]
+    modId="forge"
+    mandatory=true
+    versionRange="[${forge_major},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.publicskintotems]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${mc_range}"
+    ordering="NONE"
+    side="BOTH"

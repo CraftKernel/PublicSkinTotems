@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "github.com.CraftKernel.publicskintotems.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AnvilMenuMixin"
+  ],
+  "client": [
+    "ItemRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -3,7 +3,6 @@ plugins {
     id 'maven-publish'
 }
 
-// Select the Minecraft version with -PmcVersion=<ver>; defaults to the value in gradle.properties.
 def mcVersion = findProperty('mcVersion') ?: project.minecraft_version
 def versionProps = new Properties()
 file("versions/${mcVersion}.properties").with { if (it.exists()) it.withInputStream { versionProps.load(it) } }
@@ -27,6 +26,12 @@ loom {
     }
 }
 
+if (findProperty('quickWorld')) {
+    loom.runs.configureEach {
+        programArgs '--quickPlaySingleplayer', findProperty('quickWorld')
+    }
+}
+
 fabricApi {
     configureDataGeneration {
         client = true
@@ -34,15 +39,9 @@ fabricApi {
 }
 
 repositories {
-    // Add repositories to retrieve artifacts from in here.
-    // You should only use this when depending on other mods because
-    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-    // for more information about repositories.
 }
 
 dependencies {
-    // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -65,10 +64,6 @@ processResources {
 
 def targetJavaVersion = 17
 tasks.withType(JavaCompile).configureEach {
-    // ensure that the encoding is set to UTF-8, no matter what the system default is
-    // this fixes some edge cases with special characters not displaying correctly
-    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-    // If Javadoc is generated, this must be specified in that task too.
     it.options.encoding = "UTF-8"
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         it.options.release.set(targetJavaVersion)
@@ -80,9 +75,6 @@ java {
     if (JavaVersion.current() < javaVersion) {
         toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     }
-    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-    // if it is present.
-    // If you remove this line, sources will not be generated.
     withSourcesJar()
 }
 
@@ -92,20 +84,26 @@ jar {
     }
 }
 
-// configure the maven publication
+// Whole project (all targets, versions, api, scripts) as a zip, published alongside the jars
+tasks.register('projectSourceZip', Zip) {
+    archiveClassifier = 'project'
+    from(projectDir) {
+        include 'src/**', 'targets/**', 'versions/**', 'api/**', 'gradle/**'
+        include 'build.gradle', 'settings.gradle', 'gradle.properties', 'gradlew', 'gradlew.bat'
+        include 'LICENSE.txt', 'README.md', '*.sh', '*.ps1'
+        exclude '**/build/**', '**/.gradle/**', '**/run/**', '**/.idea/**', '**/out/**'
+    }
+}
+
 publishing {
     publications {
         create("mavenJava", MavenPublication) {
             artifactId = project.archives_base_name
             from components.java
+            artifact(tasks.named('projectSourceZip'))
         }
     }
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
     }
 }

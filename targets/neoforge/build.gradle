@@ -1,0 +1,76 @@
+plugins {
+    id 'maven-publish'
+    id 'java'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+def mcVersion = findProperty('mcVersion') ?: project.minecraft_version
+def mcLabel = findProperty('mcLabel') ?: mcVersion
+def versionProps = new Properties()
+file("versions/${mcVersion}.properties").with { if (it.exists()) it.withInputStream { versionProps.load(it) } }
+versionProps.each { k, v -> project.ext.set(k, v) }
+
+version = project.mod_version
+group = 'github.com.CraftKernel'
+base.archivesName = "publicskintotems-neoforge-mc${mcLabel}"
+
+def javaVersion = (project.hasProperty('java_version') ? project.java_version : '21') as int
+java.toolchain.languageVersion = JavaLanguageVersion.of(javaVersion)
+
+def dataCompat = project.hasProperty('data') ? project.data : 'v1_21_9'
+sourceSets.main.java.srcDir "../common/modern/data/${dataCompat}/java"
+sourceSets.main.java.srcDir "../common/modern/server/java"
+if (!project.hasProperty('legacy_render')) {
+    sourceSets.main.java.srcDir "../common/modern/itemstate/java"
+}
+sourceSets.main.resources.srcDir "../common/modern/compat/${project.compat}/resources"
+sourceSets.main.java.srcDir "../common/modern/compat/${project.compat}/java"
+
+neoForge {
+    version = project.neo_version
+    runs {
+        client {
+            client()
+            if (findProperty('quickWorld')) {
+                programArguments.addAll('--quickPlaySingleplayer', findProperty('quickWorld'))
+            }
+        }
+    }
+    mods {
+        publicskintotems { sourceSet sourceSets.main }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = javaVersion
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mc_range", project.mc_range
+    inputs.property "neo_major", project.neo_major
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": project.version, "mc_range": project.mc_range, "neo_major": project.neo_major
+    }
+}
+
+tasks.named('jar', Jar) {
+    from("LICENSE.txt")
+}
+
+tasks.register('copyToLibs', Copy) {
+    from(tasks.named('jar'))
+    into rootProject.file('../../build/libs')
+}
+tasks.named('build') { finalizedBy 'copyToLibs' }
+
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) {
+            groupId = 'github.com.CraftKernel'
+            artifactId = base.archivesName.get()
+            from components.java
+        }
+    }
+}
